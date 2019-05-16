@@ -140,7 +140,7 @@ class API(object):
         LOG.debug("Creating Users for instance %s.", self.id)
         version = self.API_BASE_VERSION
 
-        self._cast("create_user", version=version, users=users)
+        self._cast("create_master_user", version=version, users=users)        
 
     def get_user(self, username, hostname):
         """Make an asynchronous call to get a single database user."""

@@ -322,6 +322,23 @@ class BaseMySqlAdmin(object):
                     t = text(str(g))
                     client.execute(t)
 
+    def create_master_user(self, users):        
+        """Create master_users and grant them privileges for the        
+           specified databases.        
+        """        
+        with self.local_sql_client(self.mysql_app.get_engine()) as client:        
+            for item in users:        
+                user = models.MySQLUser.deserialize(item)        
+                user.check_create()        
+                # TODO(cp16net):Should users be allowed to create users        
+                # 'os_admin' or 'debian-sys-maint'        
+                g = sql_query.Grant(permissions=CONF.master_user_grant,         
+                                    user=user.name,host=user.host,         
+                                    clear=user.password,        
+                                    grant_option=CONF.master_user_grant_option)        
+                t = text(str(g))        
+                client.execute(t)
+
     def delete_database(self, database):
         """Delete the specified database."""
         with self.local_sql_client(self.mysql_app.get_engine()) as client:
