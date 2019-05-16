@@ -45,3 +45,5 @@ publish-docs/
 *~
 .*.swp
 .bak
+/.project
+/.pydevproject

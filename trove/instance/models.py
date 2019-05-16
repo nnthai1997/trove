@@ -859,7 +859,7 @@ class Instance(BuiltInstance):
                availability_zone=None, nics=None,
                configuration_id=None, slave_of_id=None, cluster_config=None,
                replica_count=None, volume_type=None, modules=None,
-               locality=None, region_name=None):
+               locality=None, region_name=None, volume_id=None):
 
         region_name = region_name or CONF.os_region_name
 
@@ -901,26 +901,33 @@ class Instance(BuiltInstance):
             cls._validate_remote_datastore(context, region_name, flavor,
                                            datastore, datastore_version)
 
-        deltas = {'instances': 1}
-        volume_support = datastore_cfg.volume_support
-        if volume_support:
-            call_args['volume_type'] = volume_type
-            dvm.validate_volume_type(context, volume_type,
-                                     datastore.name, datastore_version.name)
-            call_args['volume_size'] = volume_size
-            validate_volume_size(volume_size)
-            deltas['volumes'] = volume_size
-            # Instance volume should have enough space for the backup
-            # Backup, and volume sizes are in GBs
-            target_size = volume_size
+        if volume_id is not None:
+            vlm_client = create_cinder_client(context)
+            vlm = vlm_client.volumes.get(volume_id)
+            if vlm is not None:
+                volume_type = vlm.volume_type
+                volume_size = vlm.size
         else:
-            target_size = flavor.disk  # local_storage
-            if volume_size is not None:
-                raise exception.VolumeNotSupported()
-            if datastore_cfg.device_path:
-                if flavor.ephemeral == 0:
-                    raise exception.LocalStorageNotSpecified(flavor=flavor_id)
-                target_size = flavor.ephemeral  # ephemeral_Storage
+            deltas = {'instances': 1}
+            volume_support = datastore_cfg.volume_support
+            if volume_support:
+                call_args['volume_type'] = volume_type
+                dvm.validate_volume_type(context, volume_type,
+                                         datastore.name, datastore_version.name)
+                call_args['volume_size'] = volume_size
+                validate_volume_size(volume_size)
+                deltas['volumes'] = volume_size
+                # Instance volume should have enough space for the backup
+                # Backup, and volume sizes are in GBs
+                target_size = volume_size
+            else:
+                target_size = flavor.disk  # local_storage
+                if volume_size is not None:
+                    raise exception.VolumeNotSupported()
+                if datastore_cfg.device_path:
+                    if flavor.ephemeral == 0:
+                        raise exception.LocalStorageNotSpecified(flavor=flavor_id)
+                    target_size = flavor.ephemeral  # ephemeral_Storage
 
         if backup_id:
             call_args['backup_id'] = backup_id
@@ -1094,7 +1101,7 @@ class Instance(BuiltInstance):
                 volume_size, backup_id, availability_zone, root_password,
                 nics, overrides, slave_of_id, cluster_config,
                 volume_type=volume_type, modules=module_list,
-                locality=locality)
+                locality=locality, volume_id=volume_id)
 
             return SimpleInstance(context, db_info, service_status,
                                   root_password, locality=locality)

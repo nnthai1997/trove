@@ -311,9 +311,11 @@ class InstanceController(wsgi.Controller):
 
         if 'volume' in body['instance']:
             volume_info = body['instance']['volume']
+            volume_id = volume_info.get('id')
             volume_size = int(volume_info['size'])
             volume_type = volume_info.get('type')
         else:
+            volume_id = None
             volume_size = None
             volume_type = None
 
@@ -356,7 +358,8 @@ class InstanceController(wsgi.Controller):
                                           volume_type=volume_type,
                                           modules=modules,
                                           locality=locality,
-                                          region_name=region_name)
+                                          region_name=region_name,
+                                          volume_id=volume_id)
 
         view = views.InstanceDetailView(instance, req=req)
         return wsgi.Result(view.data(), 200)

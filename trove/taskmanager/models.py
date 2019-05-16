@@ -462,7 +462,7 @@ class FreshInstanceTasks(FreshInstance, NotifyMixin, ConfigurationMixin):
                         datastore_manager, packages, volume_size,
                         backup_id, availability_zone, root_password, nics,
                         overrides, cluster_config, snapshot, volume_type,
-                        modules, scheduler_hints):
+                        modules, scheduler_hints, volume_id):
         # It is the caller's responsibility to ensure that
         # FreshInstanceTasks.wait_for_instance is called after
         # create_instance to ensure that the proper usage event gets sent
@@ -506,7 +506,8 @@ class FreshInstanceTasks(FreshInstance, NotifyMixin, ConfigurationMixin):
                 nics,
                 files,
                 cinder_volume_type,
-                scheduler_hints)
+                scheduler_hints,
+                volume_id)
 
         config = self._render_config(flavor)
 
@@ -790,13 +791,29 @@ class FreshInstanceTasks(FreshInstance, NotifyMixin, ConfigurationMixin):
                                            security_groups, datastore_manager,
                                            volume_size, availability_zone,
                                            nics, files, volume_type,
-                                           scheduler_hints):
+                                           scheduler_hints, volume_id):
         LOG.debug("Begin _create_server_volume_individually for id: %s",
                   self.id)
         server = None
-        volume_info = self._build_volume_info(datastore_manager,
-                                              volume_size=volume_size,
-                                              volume_type=volume_type)
+        if volume_id is not None:
+            mapping = "%s:%s:%s:%s" % (volume_id, '', volume_size, 1)
+            bdm = CONF.block_device_mapping
+            block_device = {bdm: mapping}
+            created_volumes = [{'id': volume_id,
+                                'size': volume_size}]
+            device_path = self.device_path
+            mount_point = CONF.get(datastore_manager).mount_point
+            volume_info = {'block_device': block_device,
+                       'device_path': device_path,
+                       'mount_point': mount_point,
+                       'volumes': created_volumes,
+                       'new_volume': False}
+            LOG.info(volume_info)
+            self.update_db(volume_id=volume_id)
+        else:
+            volume_info = self._build_volume_info(datastore_manager,
+                                                  volume_size=volume_size,
+                                                  volume_type=volume_type)
         block_device_mapping = volume_info['block_device']
         try:
             server = self._create_server(flavor_id, image_id, security_groups,
@@ -844,6 +861,7 @@ class FreshInstanceTasks(FreshInstance, NotifyMixin, ConfigurationMixin):
                 'device_path': device_path,
                 'mount_point': mount_point,
                 'volumes': None,
+                'new_volume': True
             }
         return volume_info
 
@@ -912,7 +930,8 @@ class FreshInstanceTasks(FreshInstance, NotifyMixin, ConfigurationMixin):
         volume_info = {'block_device': block_device,
                        'device_path': device_path,
                        'mount_point': mount_point,
-                       'volumes': created_volumes}
+                       'volumes': created_volumes,
+                       'new_volume': True}
         return volume_info
 
     def _prepare_userdata(self, datastore_manager):
@@ -953,6 +972,7 @@ class FreshInstanceTasks(FreshInstance, NotifyMixin, ConfigurationMixin):
         self.guest.prepare(flavor_ram, packages, databases, users,
                            device_path=volume_info['device_path'],
                            mount_point=volume_info['mount_point'],
+                           new_volume=volume_info['new_volume'],
                            backup_info=backup_info,
                            config_contents=config_contents,
                            root_password=root_password,

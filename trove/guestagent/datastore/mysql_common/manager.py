@@ -199,7 +199,7 @@ class MySqlManager(manager.Manager):
         LOG.info("Restored database successfully.")
 
     def do_prepare(self, context, packages, databases, memory_mb, users,
-                   device_path, mount_point, backup_info,
+                   device_path, mount_point, new_volume, backup_info,
                    config_contents, root_password, overrides,
                    cluster_config, snapshot):
         """This is called from prepare in the base class."""
@@ -212,7 +212,8 @@ class MySqlManager(manager.Manager):
             device = volume.VolumeDevice(device_path)
             # unmount if device is already mounted
             device.unmount_device(device_path)
-            device.format()
+            if new_volume:
+                device.format()
             if os.path.exists(mount_point):
                 # rsync existing data to a "data" sub-directory
                 # on the new volume

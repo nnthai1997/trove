@@ -37,7 +37,7 @@ class GaleraManager(manager.MySqlManager):
         self.volume_do_not_start_on_reboot = False
 
     def do_prepare(self, context, packages, databases, memory_mb, users,
-                   device_path, mount_point, backup_info,
+                   device_path, mount_point, new_volume, backup_info,
                    config_contents, root_password, overrides,
                    cluster_config, snapshot):
         self.volume_do_not_start_on_reboot = True

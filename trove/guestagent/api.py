@@ -140,7 +140,7 @@ class API(object):
         LOG.debug("Creating Users for instance %s.", self.id)
         version = self.API_BASE_VERSION
 
-        self._cast("create_master_user", version=version, users=users)        
+        self._cast("create_master_user", version=version, users=users)
 
     def get_user(self, username, hostname):
         """Make an asynchronous call to get a single database user."""
@@ -312,6 +312,7 @@ class API(object):
 
     def prepare(self, memory_mb, packages, databases, users,
                 device_path='/dev/vdb', mount_point='/mnt/volume',
+                new_volume=True,
                 backup_info=None, config_contents=None, root_password=None,
                 overrides=None, cluster_config=None, snapshot=None,
                 modules=None):
@@ -333,6 +334,7 @@ class API(object):
             "prepare", version=version, packages=packages,
             databases=databases, memory_mb=memory_mb, users=users,
             device_path=device_path, mount_point=mount_point,
+            new_volume=new_volume,
             backup_info=backup_info, config_contents=config_contents,
             root_password=root_password, overrides=overrides,
             cluster_config=cluster_config, snapshot=snapshot, modules=modules)

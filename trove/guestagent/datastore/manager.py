@@ -259,18 +259,19 @@ class Manager(periodic_task.PeriodicTasks):
     # Instance related
     #################
     def prepare(self, context, packages, databases, memory_mb, users,
-                device_path=None, mount_point=None, backup_info=None,
+                device_path=None, mount_point=None, new_volume=True,
+                backup_info=None,
                 config_contents=None, root_password=None, overrides=None,
                 cluster_config=None, snapshot=None, modules=None):
         """Set up datastore on a Guest Instance."""
         with EndNotification(context, instance_id=CONF.guest_id):
             self._prepare(context, packages, databases, memory_mb, users,
-                          device_path, mount_point, backup_info,
+                          device_path, mount_point, new_volume, backup_info,
                           config_contents, root_password, overrides,
                           cluster_config, snapshot, modules)
 
     def _prepare(self, context, packages, databases, memory_mb, users,
-                 device_path, mount_point, backup_info,
+                 device_path, mount_point, new_volume, backup_info,
                  config_contents, root_password, overrides,
                  cluster_config, snapshot, modules):
         LOG.info("Starting datastore prepare for '%s'.", self.manager)
@@ -280,7 +281,8 @@ class Manager(periodic_task.PeriodicTasks):
             # Since all module handling is common, don't pass it down to the
             # individual 'do_prepare' methods.
             self.do_prepare(context, packages, databases, memory_mb,
-                            users, device_path, mount_point, backup_info,
+                            users, device_path, mount_point, new_volume, 
+                            backup_info,
                             config_contents, root_password, overrides,
                             cluster_config, snapshot)
             if overrides:
@@ -370,7 +372,8 @@ class Manager(periodic_task.PeriodicTasks):
 
     @abc.abstractmethod
     def do_prepare(self, context, packages, databases, memory_mb, users,
-                   device_path, mount_point, backup_info, config_contents,
+                   device_path, mount_point, new_volume, 
+                   backup_info, config_contents,
                    root_password, overrides, cluster_config, snapshot):
         """This is called from prepare when the Trove instance first comes
         online.  'Prepare' is the first rpc message passed from the

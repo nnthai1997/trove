@@ -47,7 +47,7 @@ class Manager(manager.Manager):
         self.app.reset_configuration(configuration)
 
     def do_prepare(self, context, packages, databases, memory_mb, users,
-                   device_path, mount_point, backup_info,
+                   device_path, mount_point, new_volume, backup_info,
                    config_contents, root_password, overrides,
                    cluster_config, snapshot):
         """This is called from prepare in the base class."""

@@ -371,7 +371,8 @@ class Manager(periodic_task.PeriodicTasks):
                          image_id, databases, users, datastore_manager,
                          packages, volume_size, backup_id, availability_zone,
                          root_password, nics, overrides, slave_of_id,
-                         cluster_config, volume_type, modules, locality):
+                         cluster_config, volume_type, modules, locality,
+                         volume_id):
         if slave_of_id:
             self._create_replication_slave(context, instance_id, name,
                                            flavor, image_id, databases, users,
@@ -379,7 +380,8 @@ class Manager(periodic_task.PeriodicTasks):
                                            volume_size,
                                            availability_zone, root_password,
                                            nics, overrides, slave_of_id,
-                                           backup_id, volume_type, modules)
+                                           backup_id, volume_type, modules,
+                                           volume_id)
         else:
             if type(instance_id) in [list]:
                 raise AttributeError(_(
@@ -394,7 +396,7 @@ class Manager(periodic_task.PeriodicTasks):
                                            availability_zone, root_password,
                                            nics, overrides, cluster_config,
                                            None, volume_type, modules,
-                                           scheduler_hints)
+                                           scheduler_hints, volume_id)
             timeout = (CONF.restore_usage_timeout if backup_id
                        else CONF.usage_timeout)
             instance_tasks.wait_for_instance(timeout, flavor)
@@ -403,7 +405,8 @@ class Manager(periodic_task.PeriodicTasks):
                         image_id, databases, users, datastore_manager,
                         packages, volume_size, backup_id, availability_zone,
                         root_password, nics, overrides, slave_of_id,
-                        cluster_config, volume_type, modules, locality):
+                        cluster_config, volume_type, modules, locality,
+                        volume_id):
         with EndNotification(context,
                              instance_id=(instance_id[0]
                                           if isinstance(instance_id, list)
@@ -414,7 +417,7 @@ class Manager(periodic_task.PeriodicTasks):
                                   backup_id, availability_zone,
                                   root_password, nics, overrides, slave_of_id,
                                   cluster_config, volume_type, modules,
-                                  locality)
+                                  locality, volume_id)
 
     def upgrade(self, context, instance_id, datastore_version_id):
         instance_tasks = models.BuiltInstanceTasks.load(context, instance_id)

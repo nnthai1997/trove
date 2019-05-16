@@ -207,7 +207,8 @@ class Manager(manager.Manager):
                 user_attrs)
 
     def do_prepare(self, context, packages, databases, memory_mb, users,
-                   device_path, mount_point, backup_info, config_contents,
+                   device_path, mount_point, new_volume,
+                   backup_info, config_contents,
                    root_password, overrides, cluster_config, snapshot):
         self.app.install(context, packages)
         LOG.debug("Waiting for database first boot.")
